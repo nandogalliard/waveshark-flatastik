@@ -1,11 +1,11 @@
-wg_example = {
+wg = {
     100: "Anna",
     101: "Betty",
     102: "Charlie",
     103: "Dennis",
 }
 
-wg_offset_example = {
+wg_offset = {
     100: 10,
     101: 5,
     102: 3,
