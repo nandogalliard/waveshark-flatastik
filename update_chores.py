@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import os
+import re
 import sys
 
 picdir = os.path.join(
@@ -15,6 +16,7 @@ if os.path.exists(libdir):
 import datetime
 import json
 import logging
+import math
 import time
 import traceback
 
@@ -43,24 +45,21 @@ headers = {"x-api-key": x_api_key}
 
 def getTime(chore):
 
-    if chore["rotationTime"] != -1:
+    till = math.floor(chore["timeLeftNext"] / 86400)
 
-        till = round(chore["timeLeftNext"] / 86400)
+    if till > 0:
+        temp = "in " + str(till) + " Tagen"
+    elif till == 0:
 
-        if till > 0:
-            return "in " + str(till) + " Tagen"
-        elif till == 0:
+        temp = "heute"
+    elif till < 0:
 
-            return "heute"
-        elif till < 0:
-
-            return str(till * -1) + " Tage Verzug"
-        else:
-
-            return "Fehler"
+        temp = str(till * -1) + " Tage Verzug"
     else:
 
-        return "nach Bedarf"
+        temp = "Fehler"
+
+    return temp
 
 
 def get_timeLeft(chores):
@@ -113,13 +112,19 @@ try:
 
     chores = sorted(json.loads(choresdata), key=get_timeLeft)
 
+    for idx, obj in enumerate(
+        chores
+    ):  # Remove chores that are not done at specific times.
+        if obj["rotationTime"] == -1:
+            chores.pop(idx)
+
     logging.info("Flatastic requests get, cycling over chores...")
 
     for i in range(0, len(chores)):
 
         ch = chores[i]["title"]
         person = wg[chores[i]["currentUser"]]
-        time = getTime(chores[i])
+        time_left = getTime(chores[i])
         start = 10 + i * (fontsize + 10)
         if start >= last_line - 2 * (fontsize + 10):
             break
@@ -130,20 +135,20 @@ try:
                 draw_red.rectangle((0, start, 640, fontsize + start + 5), fill=0)
                 draw_red.text((10, start), ch[:string_length], font=font, fill=255)
                 draw_red.text((380, start), person, font=font, fill=255)
-                draw_red.text((470, start), time, font=font, fill=255)
+                draw_red.text((470, start), time_left, font=font, fill=255)
             elif till < 1:
                 draw_black.rectangle((0, start, 640, fontsize + start + 5), fill=0)
                 draw_black.text((10, start), ch[:string_length], font=font, fill=255)
                 draw_black.text((380, start), person, font=font, fill=255)
-                draw_black.text((470, start), time, font=font, fill=255)
+                draw_black.text((470, start), time_left, font=font, fill=255)
             else:
                 draw_black.text((10, start), ch[:string_length], font=font, fill=0)
                 draw_black.text((380, start), person, font=font, fill=0)
-                draw_black.text((470, start), time, font=font, fill=0)
+                draw_black.text((470, start), time_left, font=font, fill=0)
         else:
             draw_black.text((10, start), ch[:string_length], font=font, fill=0)
             draw_black.text((380, start), person, font=font, fill=0)
-            draw_black.text((470, start), time, font=font, fill=0)
+            draw_black.text((470, start), time_left, font=font, fill=0)
 
     logging.info("Aktualisiert...")
 
