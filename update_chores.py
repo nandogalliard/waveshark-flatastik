@@ -112,11 +112,17 @@ try:
 
     chores = sorted(json.loads(choresdata), key=get_timeLeft)
 
-    for idx, obj in enumerate(
-        chores
-    ):  # Remove chores that are not done at specific times.
-        if obj["rotationTime"] == -1:
-            chores.pop(idx)
+    change_detected = True
+    while (
+        change_detected
+    ):  # Loop until no change is detected. If -1 was directly behind another -1, it would be skipped if not looping
+        change_detected = False
+        for idx, obj in enumerate(
+            chores
+        ):  # Remove chores that are not done at specific times.
+            if obj["rotationTime"] == -1:
+                chores.pop(idx)
+                change_detected = True
 
     logging.info("Flatastic requests get, cycling over chores...")
 
