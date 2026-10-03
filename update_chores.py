@@ -24,7 +24,15 @@ import traceback
 import requests
 from PIL import Image, ImageDraw, ImageFont
 
-from device_config import DISPLAY_DRIVER
+from secrets_api_etc import (  # Local settings and API key are stored here.
+    DISPLAY_DRIVER,
+    enable_working_range,
+    wg,
+    wg_name,
+    wg_offset,
+    working_range_upper_bound,
+    x_api_key,
+)
 
 if DISPLAY_DRIVER == "epd7in5bc":
     from waveshare_epd import epd7in5bc as epd_driver
@@ -32,13 +40,6 @@ elif DISPLAY_DRIVER == "epd7in5b_V2":
     from waveshare_epd import epd7in5b_V2 as epd_driver
 else:
     raise ValueError(f"Unsupported display driver: {DISPLAY_DRIVER}")
-
-from secrets_api_etc import (  # Local API KEY and flatemate names are stored in secrets_api_etc.py
-    wg,
-    wg_name,
-    wg_offset,
-    x_api_key,
-)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -203,10 +204,6 @@ try:
         if points < min_chore_points:
             min_chore_points = points
 
-
-    # working range feature -params
-    enable_working_range = True         # toggle working range feature
-    working_range_upper_bound = 15
 
     # Find the ACTUAL maximum chore points of all flatmates
     max_chore_points = -100000
