@@ -319,8 +319,8 @@ x_api_key
 
 ### Very overdue task formatting
 
-Very overdue recurring tasks can be shown as black text on a red background
-with a two-pixel black frame around the existing row bounds. The feature is on
+Very overdue tasks can be shown as white text on a red background
+with a four-pixel black frame around the existing row bounds. The feature is on
 by default:
 
 ```python

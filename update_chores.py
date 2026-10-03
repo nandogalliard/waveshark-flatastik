@@ -57,6 +57,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 fontsize = 20
 string_length = 30
+very_overdue_frame_width = 4
 
 
 url_chores = "https://api.flatastic-app.com/index.php/api/chores"
@@ -182,29 +183,34 @@ try:
                 very_overdue_count += 1
                 row_bottom = fontsize + start + 5
 
-                # Keep the existing row size. The outer two pixels become a
-                # black frame and the remaining interior stays red.
-                draw_black.rectangle(
-                    (0, start, row_right, row_bottom), outline=0
-                )
-                draw_black.rectangle(
-                    (1, start + 1, row_right - 1, row_bottom - 1), outline=0
-                )
+                # Keep the existing row size. The outer pixels become a black
+                # frame and the remaining interior stays red.
+                for inset in range(very_overdue_frame_width):
+                    draw_black.rectangle(
+                        (
+                            inset,
+                            start + inset,
+                            row_right - inset,
+                            row_bottom - inset,
+                        ),
+                        outline=0,
+                    )
                 draw_red.rectangle(
-                    (2, start + 2, row_right - 2, row_bottom - 2), fill=0
+                    (
+                        very_overdue_frame_width,
+                        start + very_overdue_frame_width,
+                        row_right - very_overdue_frame_width,
+                        row_bottom - very_overdue_frame_width,
+                    ),
+                    fill=0,
                 )
 
-                # Clear red beneath each glyph, then draw the glyph in black.
+                # Clearing the red plane leaves white glyphs in the red area.
                 draw_red.text(
                     (x_title, start), ch[:title_chars], font=font, fill=255
                 )
                 draw_red.text((x_person, start), person, font=font, fill=255)
                 draw_red.text((x_time, start), time_left, font=font, fill=255)
-                draw_black.text(
-                    (x_title, start), ch[:title_chars], font=font, fill=0
-                )
-                draw_black.text((x_person, start), person, font=font, fill=0)
-                draw_black.text((x_time, start), time_left, font=font, fill=0)
             elif till < 0:
                 #draw_red.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
                 #draw_red.text((, start), ch[:string_length], font=font, fill=255)
