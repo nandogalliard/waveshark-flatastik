@@ -4,3 +4,6 @@ secrets_api_etc.py
 .vscode
 
 device_config.py
+
+__pycache__/
+*.py[cod]

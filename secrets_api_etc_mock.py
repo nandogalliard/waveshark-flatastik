@@ -16,6 +16,14 @@ enable_working_range = True
 working_range_upper_bound = 15
 
 
+## Very overdue task formatting:
+# A recurring task becomes very overdue after it has been overdue for this
+# percentage of its configured frequency. For example, 50% of 14 days is 7 days.
+enable_very_overdue_format = True
+very_overdue_threshold_percent = 50
+very_overdue_one_time_days = 10
+
+
 ## Flatmate Configuration:
 # Check on https://www.flatastic-app.com/webapp/ to get your WG ID and the corresponding offsets for each member.
 wg = {

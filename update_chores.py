@@ -24,6 +24,8 @@ import traceback
 import requests
 from PIL import Image, ImageDraw, ImageFont
 
+import secrets_api_etc
+from chore_formatting import is_very_overdue
 from secrets_api_etc import (  # Local settings and API key are stored here.
     DISPLAY_DRIVER,
     enable_working_range,
@@ -32,6 +34,16 @@ from secrets_api_etc import (  # Local settings and API key are stored here.
     wg_offset,
     working_range_upper_bound,
     x_api_key,
+)
+
+enable_very_overdue_format = getattr(
+    secrets_api_etc, "enable_very_overdue_format", True
+)
+very_overdue_threshold_percent = getattr(
+    secrets_api_etc, "very_overdue_threshold_percent", 50
+)
+very_overdue_one_time_days = getattr(
+    secrets_api_etc, "very_overdue_one_time_days", 10
 )
 
 if DISPLAY_DRIVER == "epd7in5bc":
@@ -149,6 +161,7 @@ try:
 
     logging.info("Flatastic requests get, cycling over chores...")
 
+    very_overdue_count = 0
     for i in range(0, len(chores)):
 
         ch = chores[i]["title"]
@@ -160,7 +173,39 @@ try:
         if chores[i]["rotationTime"] != -1:
             till = chores[i]["timeLeftNext"]
             till = till / 86400
-            if till < 0:
+            if is_very_overdue(
+                chores[i],
+                enable_very_overdue_format,
+                very_overdue_threshold_percent,
+                very_overdue_one_time_days,
+            ):
+                very_overdue_count += 1
+                row_bottom = fontsize + start + 5
+
+                # Keep the existing row size. The outer two pixels become a
+                # black frame and the remaining interior stays red.
+                draw_black.rectangle(
+                    (0, start, row_right, row_bottom), outline=0
+                )
+                draw_black.rectangle(
+                    (1, start + 1, row_right - 1, row_bottom - 1), outline=0
+                )
+                draw_red.rectangle(
+                    (2, start + 2, row_right - 2, row_bottom - 2), fill=0
+                )
+
+                # Clear red beneath each glyph, then draw the glyph in black.
+                draw_red.text(
+                    (x_title, start), ch[:title_chars], font=font, fill=255
+                )
+                draw_red.text((x_person, start), person, font=font, fill=255)
+                draw_red.text((x_time, start), time_left, font=font, fill=255)
+                draw_black.text(
+                    (x_title, start), ch[:title_chars], font=font, fill=0
+                )
+                draw_black.text((x_person, start), person, font=font, fill=0)
+                draw_black.text((x_time, start), time_left, font=font, fill=0)
+            elif till < 0:
                 #draw_red.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
                 #draw_red.text((, start), ch[:string_length], font=font, fill=255)
                 #draw_red.text((380, start), person, font=font, fill=255)
@@ -193,6 +238,7 @@ try:
             draw_black.text((x_person, start), person, font=font, fill=0)
             draw_black.text((x_time, start), time_left, font=font, fill=0)
 
+    logging.info("Rendered %s very overdue task(s)", very_overdue_count)
     logging.info("Aktualisiert...")
     
     # Find the minimum chore points of all flatmates

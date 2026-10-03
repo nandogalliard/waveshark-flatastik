@@ -306,13 +306,36 @@ The application currently imports:
 
 ```python
 DISPLAY_DRIVER
+enable_very_overdue_format
 enable_working_range
+very_overdue_one_time_days
+very_overdue_threshold_percent
 wg
 wg_name
 wg_offset
 working_range_upper_bound
 x_api_key
 ```
+
+### Very overdue task formatting
+
+Very overdue recurring tasks can be shown as black text on a red background
+with a two-pixel black frame around the existing row bounds. The feature is on
+by default:
+
+```python
+enable_very_overdue_format = True
+very_overdue_threshold_percent = 50
+very_overdue_one_time_days = 10
+```
+
+The threshold is a percentage of the task frequency. With a 14-day frequency
+and a 50% threshold, the special format starts once the task is 7 days overdue.
+Set `enable_very_overdue_format` to `False` to retain the normal white-on-red
+format for every overdue task. One-time tasks have no recurring frequency, so
+they use the special format only after they are more than
+`very_overdue_one_time_days` overdue. Tasks configured as "only when necessary"
+remain excluded from the display.
 
 ### Obtaining the Flatastic API key
 
