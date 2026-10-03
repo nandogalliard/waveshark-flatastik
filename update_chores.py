@@ -57,7 +57,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 fontsize = 20
 string_length = 30
-very_overdue_frame_width = 4
+task_text_y_offset = 2
+very_overdue_frame_width = 6
 
 
 url_chores = "https://api.flatastic-app.com/index.php/api/chores"
@@ -169,6 +170,7 @@ try:
         person = wg[chores[i]["currentUser"]]
         time_left = getTime(chores[i])
         start = 10 + i * (fontsize + 10)
+        text_y = start + task_text_y_offset
         if start >= last_line - 2 * (fontsize + 10):
             break
         if chores[i]["rotationTime"] != -1:
@@ -205,44 +207,50 @@ try:
                     fill=0,
                 )
 
-                # Clearing the red plane leaves white glyphs in the red area.
+                # Clear both color planes so every glyph stays white, including
+                # descenders that reach into the thicker bottom frame.
                 draw_red.text(
-                    (x_title, start), ch[:title_chars], font=font, fill=255
+                    (x_title, text_y), ch[:title_chars], font=font, fill=255
                 )
-                draw_red.text((x_person, start), person, font=font, fill=255)
-                draw_red.text((x_time, start), time_left, font=font, fill=255)
+                draw_red.text((x_person, text_y), person, font=font, fill=255)
+                draw_red.text((x_time, text_y), time_left, font=font, fill=255)
+                draw_black.text(
+                    (x_title, text_y), ch[:title_chars], font=font, fill=255
+                )
+                draw_black.text((x_person, text_y), person, font=font, fill=255)
+                draw_black.text((x_time, text_y), time_left, font=font, fill=255)
             elif till < 0:
                 #draw_red.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
                 #draw_red.text((, start), ch[:string_length], font=font, fill=255)
                 #draw_red.text((380, start), person, font=font, fill=255)
                 #draw_red.text((470, start), time_left, font=font, fill=255)
                 draw_red.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
-                draw_red.text((x_title, start), ch[:title_chars], font=font, fill=255)
-                draw_red.text((x_person, start), person, font=font, fill=255)
-                draw_red.text((x_time, start), time_left, font=font, fill=255)
+                draw_red.text((x_title, text_y), ch[:title_chars], font=font, fill=255)
+                draw_red.text((x_person, text_y), person, font=font, fill=255)
+                draw_red.text((x_time, text_y), time_left, font=font, fill=255)
             elif till < 1:
                 #draw_black.rectangle((0, start, 640, fontsize + start + 5), fill=0)
                 #draw_black.text((10, start), ch[:string_length], font=font, fill=255)
                 #draw_black.text((380, start), person, font=font, fill=255)
                 #draw_black.text((470, start), time_left, font=font, fill=255)
                 draw_black.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
-                draw_black.text((x_title, start), ch[:title_chars], font=font, fill=255)
-                draw_black.text((x_person, start), person, font=font, fill=255)
-                draw_black.text((x_time, start), time_left, font=font, fill=255)
+                draw_black.text((x_title, text_y), ch[:title_chars], font=font, fill=255)
+                draw_black.text((x_person, text_y), person, font=font, fill=255)
+                draw_black.text((x_time, text_y), time_left, font=font, fill=255)
             else:
                 #draw_black.text((10, start), ch[:string_length], font=font, fill=0)
                 #draw_black.text((380, start), person, font=font, fill=0)
                 #draw_black.text((470, start), time_left, font=font, fill=0)
-                draw_black.text((x_title, start), ch[:title_chars], font=font, fill=0)
-                draw_black.text((x_person, start), person, font=font, fill=0)
-                draw_black.text((x_time, start), time_left, font=font, fill=0)
+                draw_black.text((x_title, text_y), ch[:title_chars], font=font, fill=0)
+                draw_black.text((x_person, text_y), person, font=font, fill=0)
+                draw_black.text((x_time, text_y), time_left, font=font, fill=0)
         else:
             # draw_black.text((10, start), ch[:string_length], font=font, fill=0)
             # draw_black.text((380, start), person, font=font, fill=0)
             # draw_black.text((470, start), time_left, font=font, fill=0)
-            draw_black.text((x_title, start), ch[:title_chars], font=font, fill=0)
-            draw_black.text((x_person, start), person, font=font, fill=0)
-            draw_black.text((x_time, start), time_left, font=font, fill=0)
+            draw_black.text((x_title, text_y), ch[:title_chars], font=font, fill=0)
+            draw_black.text((x_person, text_y), person, font=font, fill=0)
+            draw_black.text((x_time, text_y), time_left, font=font, fill=0)
 
     logging.info("Rendered %s very overdue task(s)", very_overdue_count)
     logging.info("Aktualisiert...")
