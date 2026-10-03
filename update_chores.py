@@ -25,7 +25,11 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 
 import secrets_api_etc
-from chore_formatting import is_very_overdue
+from chore_formatting import (
+    VERY_OVERDUE,
+    draw_chore_row,
+    get_chore_display_state,
+)
 from secrets_api_etc import (  # Local settings and API key are stored here.
     DISPLAY_DRIVER,
     enable_working_range,
@@ -57,8 +61,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 fontsize = 20
 string_length = 30
-task_text_y_offset = 2
-very_overdue_frame_width = 6
 
 
 url_chores = "https://api.flatastic-app.com/index.php/api/chores"
@@ -170,87 +172,30 @@ try:
         person = wg[chores[i]["currentUser"]]
         time_left = getTime(chores[i])
         start = 10 + i * (fontsize + 10)
-        text_y = start + task_text_y_offset
         if start >= last_line - 2 * (fontsize + 10):
             break
-        if chores[i]["rotationTime"] != -1:
-            till = chores[i]["timeLeftNext"]
-            till = till / 86400
-            if is_very_overdue(
-                chores[i],
-                enable_very_overdue_format,
-                very_overdue_threshold_percent,
-                very_overdue_one_time_days,
-            ):
-                very_overdue_count += 1
-                row_bottom = fontsize + start + 5
 
-                # Keep the existing row size. The outer pixels become a black
-                # frame and the remaining interior stays red.
-                for inset in range(very_overdue_frame_width):
-                    draw_black.rectangle(
-                        (
-                            inset,
-                            start + inset,
-                            row_right - inset,
-                            row_bottom - inset,
-                        ),
-                        outline=0,
-                    )
-                draw_red.rectangle(
-                    (
-                        very_overdue_frame_width,
-                        start + very_overdue_frame_width,
-                        row_right - very_overdue_frame_width,
-                        row_bottom - very_overdue_frame_width,
-                    ),
-                    fill=0,
-                )
+        state = get_chore_display_state(
+            chores[i],
+            enable_very_overdue_format,
+            very_overdue_threshold_percent,
+            very_overdue_one_time_days,
+        )
+        if state == VERY_OVERDUE:
+            very_overdue_count += 1
 
-                # Clear both color planes so every glyph stays white, including
-                # descenders that reach into the thicker bottom frame.
-                draw_red.text(
-                    (x_title, text_y), ch[:title_chars], font=font, fill=255
-                )
-                draw_red.text((x_person, text_y), person, font=font, fill=255)
-                draw_red.text((x_time, text_y), time_left, font=font, fill=255)
-                draw_black.text(
-                    (x_title, text_y), ch[:title_chars], font=font, fill=255
-                )
-                draw_black.text((x_person, text_y), person, font=font, fill=255)
-                draw_black.text((x_time, text_y), time_left, font=font, fill=255)
-            elif till < 0:
-                #draw_red.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
-                #draw_red.text((, start), ch[:string_length], font=font, fill=255)
-                #draw_red.text((380, start), person, font=font, fill=255)
-                #draw_red.text((470, start), time_left, font=font, fill=255)
-                draw_red.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
-                draw_red.text((x_title, text_y), ch[:title_chars], font=font, fill=255)
-                draw_red.text((x_person, text_y), person, font=font, fill=255)
-                draw_red.text((x_time, text_y), time_left, font=font, fill=255)
-            elif till < 1:
-                #draw_black.rectangle((0, start, 640, fontsize + start + 5), fill=0)
-                #draw_black.text((10, start), ch[:string_length], font=font, fill=255)
-                #draw_black.text((380, start), person, font=font, fill=255)
-                #draw_black.text((470, start), time_left, font=font, fill=255)
-                draw_black.rectangle((0, start, row_right, fontsize + start + 5), fill=0)
-                draw_black.text((x_title, text_y), ch[:title_chars], font=font, fill=255)
-                draw_black.text((x_person, text_y), person, font=font, fill=255)
-                draw_black.text((x_time, text_y), time_left, font=font, fill=255)
-            else:
-                #draw_black.text((10, start), ch[:string_length], font=font, fill=0)
-                #draw_black.text((380, start), person, font=font, fill=0)
-                #draw_black.text((470, start), time_left, font=font, fill=0)
-                draw_black.text((x_title, text_y), ch[:title_chars], font=font, fill=0)
-                draw_black.text((x_person, text_y), person, font=font, fill=0)
-                draw_black.text((x_time, text_y), time_left, font=font, fill=0)
-        else:
-            # draw_black.text((10, start), ch[:string_length], font=font, fill=0)
-            # draw_black.text((380, start), person, font=font, fill=0)
-            # draw_black.text((470, start), time_left, font=font, fill=0)
-            draw_black.text((x_title, text_y), ch[:title_chars], font=font, fill=0)
-            draw_black.text((x_person, text_y), person, font=font, fill=0)
-            draw_black.text((x_time, text_y), time_left, font=font, fill=0)
+        draw_chore_row(
+            draw_black,
+            draw_red,
+            state,
+            (0, start, row_right, fontsize + start + 5),
+            (
+                (x_title, ch[:title_chars]),
+                (x_person, person),
+                (x_time, time_left),
+            ),
+            font,
+        )
 
     logging.info("Rendered %s very overdue task(s)", very_overdue_count)
     logging.info("Aktualisiert...")
